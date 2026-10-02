@@ -38,6 +38,49 @@ class ResidentRepository:
         finally:
             connection.close()
 
+    def update(
+        self,
+        resident: Resident,
+    ) -> Resident | None:
+        connection = (
+            get_connection(self.database_path)
+            if self.database_path
+            else get_connection()
+        )
+
+        try:
+            cursor = connection.execute(
+                """
+                UPDATE residents
+                SET
+                    first_name = ?,
+                    last_name = ?,
+                    address = ?,
+                    contact_number = ?,
+                    email = ?
+                WHERE id = ?
+                """,
+                (
+                    resident.first_name,
+                    resident.last_name,
+                    resident.address,
+                    resident.contact_number,
+                    resident.email,
+                    resident.id,
+                ),
+            )
+
+            connection.commit()
+
+            if cursor.rowcount == 0:
+                return None
+
+            return self.find_by_id(
+                resident.id
+            )
+        finally:
+            connection.close()
+
     def find_by_id(self, resident_id: int) -> Resident | None:
         connection = get_connection(self.database_path) if self.database_path else get_connection()
 
