@@ -81,6 +81,40 @@ class ResidentRepository:
         finally:
             connection.close()
 
+    def deactivate_by_id(
+        self,
+        resident_id: int,
+    ) -> Resident | None:
+        connection = (
+            get_connection(self.database_path)
+            if self.database_path
+            else get_connection()
+        )
+
+        try:
+            cursor = connection.execute(
+                """
+                UPDATE residents
+                SET status = ?
+                WHERE id = ?
+                """,
+                (
+                    "Inactive",
+                    resident_id,
+                ),
+            )
+
+            connection.commit()
+
+            if cursor.rowcount == 0:
+                return None
+
+            return self.find_by_id(
+                resident_id
+            )
+        finally:
+            connection.close()
+
     def find_by_id(self, resident_id: int) -> Resident | None:
         connection = get_connection(self.database_path) if self.database_path else get_connection()
 
