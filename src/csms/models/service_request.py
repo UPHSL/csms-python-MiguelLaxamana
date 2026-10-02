@@ -1,4 +1,12 @@
-"""Service-request model placeholder.
+from dataclasses import dataclass
+from datetime import date
 
-Service-request abstractions will be implemented in CSMS-202.
-"""
+
+@dataclass
+class ServiceRequest:
+    resident_id: int
+    service_type: str
+    description: str
+    date_requested: date
+    id: int | None = None
+    status: str = "Pending"
