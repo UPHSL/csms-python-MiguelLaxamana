@@ -1,6 +1,6 @@
 from datetime import date
 
-from src.csms.database import get_connection, initialize_database
+from src.csms.database import get_connection
 from src.csms.models.service_request import ServiceRequest
 
 
@@ -75,31 +75,3 @@ class ServiceRequestRepository:
             id=row["id"],
             status=row["status"],
         )
-
-    def update_status(
-        self,
-        request_id: int,
-        status: str,
-    ) -> ServiceRequest | None:
-        conn = get_connection()
-
-        try:
-            cursor = conn.cursor()
-
-            cursor.execute(
-                """
-                UPDATE service_requests
-                SET status = ?
-                WHERE id = ?
-                """,
-                (status, request_id),
-            )
-
-            if cursor.rowcount == 0:
-                return None
-
-            conn.commit()
-        finally:
-            conn.close()
-
-        return self.find_by_id(request_id)
