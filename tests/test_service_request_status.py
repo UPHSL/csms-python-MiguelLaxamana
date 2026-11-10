@@ -1,39 +1,27 @@
+
 from datetime import date
 
 import pytest
 
-from src.csms.database import get_connection, initialize_database
+from src.csms.database import initialize_database
 from src.csms.models.resident import Resident
 from src.csms.models.service_request import ServiceRequest
 from src.csms.repositories.resident_repository import ResidentRepository
-from src.csms.repositories.service_request_repository import ServiceRequestRepository
+from src.csms.repositories.service_request_repository import (
+    ServiceRequestRepository,
+)
 from src.csms.services.service_request_status_service import (
     ServiceRequestStatusService,
 )
 
 
 @pytest.fixture
-def repositories(tmp_path, monkeypatch):
+def repositories(tmp_path):
     database_path = tmp_path / "test_csms.db"
-
-    monkeypatch.setattr(
-        "src.csms.repositories.resident_repository.get_connection",
-        lambda: get_connection(database_path),
-    )
-    monkeypatch.setattr(
-        "src.csms.repositories.service_request_repository.get_connection",
-        lambda: get_connection(database_path),
-    )
-
     initialize_database(database_path)
 
-    with get_connection(database_path) as connection:
-        tables = connection.execute(
-            "SELECT name FROM sqlite_master WHERE type='table'"
-        ).fetchall()
-        print("Test database tables:", [row["name"] for row in tables])
+    resident_repository = ResidentRepository(database_path)
 
-    resident_repository = ResidentRepository()
     resident = resident_repository.save(
         Resident(
             first_name="Test",
@@ -45,7 +33,8 @@ def repositories(tmp_path, monkeypatch):
         )
     )
 
-    request_repository = ServiceRequestRepository()
+    request_repository = ServiceRequestRepository(database_path)
+
     request = request_repository.save(
         ServiceRequest(
             resident_id=resident.id,

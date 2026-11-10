@@ -1,8 +1,9 @@
+
 from datetime import date
 
 import pytest
 
-from src.csms.database import get_connection, initialize_database
+from src.csms.database import initialize_database
 from src.csms.models.resident import Resident
 from src.csms.models.service_request import ServiceRequest
 from src.csms.repositories.resident_repository import ResidentRepository
@@ -15,21 +16,12 @@ from src.csms.services.service_request_query_service import (
 
 
 @pytest.fixture
-def query_setup(tmp_path, monkeypatch):
+def query_setup(tmp_path):
     database_path = tmp_path / "test_csms.db"
-
-    monkeypatch.setattr(
-        "src.csms.repositories.resident_repository.get_connection",
-        lambda: get_connection(database_path),
-    )
-    monkeypatch.setattr(
-        "src.csms.repositories.service_request_repository.get_connection",
-        lambda: get_connection(database_path),
-    )
-
     initialize_database(database_path)
 
-    resident_repository = ResidentRepository()
+    resident_repository = ResidentRepository(database_path)
+
     resident = resident_repository.save(
         Resident(
             first_name="Test",
@@ -41,8 +33,7 @@ def query_setup(tmp_path, monkeypatch):
         )
     )
 
-    repository = ServiceRequestRepository()
-
+    repository = ServiceRequestRepository(database_path)
     service = ServiceRequestQueryService(repository)
 
     return repository, service, resident.id

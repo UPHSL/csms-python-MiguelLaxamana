@@ -1,18 +1,33 @@
+
 from datetime import date
+
+from csms.database import initialize_database
+from csms.repositories.resident_repository import ResidentRepository
 
 from src.csms.models.resident import Resident
 from src.csms.models.service_request import ServiceRequest
-from src.csms.repositories.resident_repository import ResidentRepository
-from src.csms.repositories.service_request_repository import ServiceRequestRepository
+from src.csms.repositories.service_request_repository import (
+    ServiceRequestRepository,
+)
 from src.csms.services.service_request_submission_service import (
     ServiceRequestSubmissionService,
 )
 from src.csms.services.service_request_validator import ServiceRequestValidator
 
 
-def test_valid_service_request_submission_succeeds():
-    """Test 1: Valid Service Request submission succeeds for an active resident."""
-    res_repo = ResidentRepository()
+def make_repositories(database_path):
+    """Create isolated repositories using a temporary database."""
+    initialize_database(database_path)
+
+    resident_repository = ResidentRepository(str(database_path))
+    service_request_repository = ServiceRequestRepository(database_path)
+
+    return resident_repository, service_request_repository
+
+
+def test_valid_service_request_submission_succeeds(tmp_path):
+    res_repo, sr_repo = make_repositories(tmp_path / "test.sqlite")
+
     resident = res_repo.save(
         Resident(
             first_name="Juan",
@@ -24,9 +39,9 @@ def test_valid_service_request_submission_succeeds():
         )
     )
 
-    validator = ServiceRequestValidator()
-    sr_repo = ServiceRequestRepository()
-    service = ServiceRequestSubmissionService(validator, res_repo, sr_repo)
+    service = ServiceRequestSubmissionService(
+        ServiceRequestValidator(), res_repo, sr_repo
+    )
 
     request = ServiceRequest(
         resident_id=resident.id,
@@ -36,13 +51,14 @@ def test_valid_service_request_submission_succeeds():
     )
 
     result = service.submit(request)
+
     assert result.success is True
     assert result.service_request is not None
 
 
-def test_submitted_service_request_receives_generated_id():
-    """Test 2 & 3: Submitted request receives a generated ID and is retrievable by ID."""
-    res_repo = ResidentRepository()
+def test_submitted_service_request_receives_generated_id(tmp_path):
+    res_repo, sr_repo = make_repositories(tmp_path / "test.sqlite")
+
     resident = res_repo.save(
         Resident(
             first_name="Maria",
@@ -54,9 +70,9 @@ def test_submitted_service_request_receives_generated_id():
         )
     )
 
-    validator = ServiceRequestValidator()
-    sr_repo = ServiceRequestRepository()
-    service = ServiceRequestSubmissionService(validator, res_repo, sr_repo)
+    service = ServiceRequestSubmissionService(
+        ServiceRequestValidator(), res_repo, sr_repo
+    )
 
     request = ServiceRequest(
         resident_id=resident.id,
@@ -66,18 +82,20 @@ def test_submitted_service_request_receives_generated_id():
     )
 
     result = service.submit(request)
+
     assert result.success is True
     assert result.service_request.id is not None
 
     retrieved = sr_repo.find_by_id(result.service_request.id)
+
     assert retrieved is not None
     assert retrieved.id == result.service_request.id
     assert retrieved.service_type == "Certificate Request"
 
 
-def test_submitted_service_request_defaults_to_pending():
-    """Test 5: Submitted service request preserves Pending status."""
-    res_repo = ResidentRepository()
+def test_submitted_service_request_defaults_to_pending(tmp_path):
+    res_repo, sr_repo = make_repositories(tmp_path / "test.sqlite")
+
     resident = res_repo.save(
         Resident(
             first_name="Pedro",
@@ -89,9 +107,9 @@ def test_submitted_service_request_defaults_to_pending():
         )
     )
 
-    validator = ServiceRequestValidator()
-    sr_repo = ServiceRequestRepository()
-    service = ServiceRequestSubmissionService(validator, res_repo, sr_repo)
+    service = ServiceRequestSubmissionService(
+        ServiceRequestValidator(), res_repo, sr_repo
+    )
 
     request = ServiceRequest(
         resident_id=resident.id,
@@ -101,12 +119,12 @@ def test_submitted_service_request_defaults_to_pending():
     )
 
     result = service.submit(request)
+
     assert result.success is True
     assert result.service_request.status == "Pending"
 
 
 def test_blank_service_type_fails_validation():
-    """Test 6: Blank or whitespace service type fails validation and doesn't persist."""
     validator = ServiceRequestValidator()
 
     request = ServiceRequest(
@@ -122,7 +140,6 @@ def test_blank_service_type_fails_validation():
 
 
 def test_blank_description_fails_validation():
-    """Test 7: Blank or whitespace description fails validation."""
     validator = ServiceRequestValidator()
 
     request = ServiceRequest(
@@ -137,12 +154,12 @@ def test_blank_description_fails_validation():
     assert "description" in errors
 
 
-def test_nonexistent_resident_prevents_submission():
-    """Test 9: Nonexistent resident prevents submission and returns correct error message."""
-    res_repo = ResidentRepository()
-    validator = ServiceRequestValidator()
-    sr_repo = ServiceRequestRepository()
-    service = ServiceRequestSubmissionService(validator, res_repo, sr_repo)
+def test_nonexistent_resident_prevents_submission(tmp_path):
+    res_repo, sr_repo = make_repositories(tmp_path / "test.sqlite")
+
+    service = ServiceRequestSubmissionService(
+        ServiceRequestValidator(), res_repo, sr_repo
+    )
 
     request = ServiceRequest(
         resident_id=99999,
@@ -157,9 +174,9 @@ def test_nonexistent_resident_prevents_submission():
     assert result.error_message == "Resident not found"
 
 
-def test_inactive_resident_cannot_submit_request():
-    """Test 10: Inactive resident cannot submit a service request."""
-    res_repo = ResidentRepository()
+def test_inactive_resident_cannot_submit_request(tmp_path):
+    res_repo, sr_repo = make_repositories(tmp_path / "test.sqlite")
+
     resident = res_repo.save(
         Resident(
             first_name="Inactive",
@@ -171,9 +188,9 @@ def test_inactive_resident_cannot_submit_request():
         )
     )
 
-    validator = ServiceRequestValidator()
-    sr_repo = ServiceRequestRepository()
-    service = ServiceRequestSubmissionService(validator, res_repo, sr_repo)
+    service = ServiceRequestSubmissionService(
+        ServiceRequestValidator(), res_repo, sr_repo
+    )
 
     request = ServiceRequest(
         resident_id=resident.id,
@@ -188,9 +205,9 @@ def test_inactive_resident_cannot_submit_request():
     assert result.error_message == "Resident is Inactive"
 
 
-def test_submission_does_not_modify_resident():
-    """Test 13: Submitting a request does not modify the resident's data."""
-    res_repo = ResidentRepository()
+def test_submission_does_not_modify_resident(tmp_path):
+    res_repo, sr_repo = make_repositories(tmp_path / "test.sqlite")
+
     resident = res_repo.save(
         Resident(
             first_name="Unchanged",
@@ -202,9 +219,9 @@ def test_submission_does_not_modify_resident():
         )
     )
 
-    validator = ServiceRequestValidator()
-    sr_repo = ServiceRequestRepository()
-    service = ServiceRequestSubmissionService(validator, res_repo, sr_repo)
+    service = ServiceRequestSubmissionService(
+        ServiceRequestValidator(), res_repo, sr_repo
+    )
 
     request = ServiceRequest(
         resident_id=resident.id,
@@ -223,7 +240,6 @@ def test_submission_does_not_modify_resident():
 
 
 def test_service_request_id_must_be_unassigned():
-    """Test 4: Service Request ID must be unassigned before submission."""
     validator = ServiceRequestValidator()
 
     request = ServiceRequest(
@@ -240,7 +256,6 @@ def test_service_request_id_must_be_unassigned():
 
 
 def test_resident_id_zero_is_invalid():
-    """Test 8: Resident ID of zero is invalid."""
     validator = ServiceRequestValidator()
 
     request = ServiceRequest(
@@ -256,7 +271,6 @@ def test_resident_id_zero_is_invalid():
 
 
 def test_negative_resident_id_is_invalid():
-    """Test 8: Negative Resident ID is invalid."""
     validator = ServiceRequestValidator()
 
     request = ServiceRequest(
@@ -272,7 +286,6 @@ def test_negative_resident_id_is_invalid():
 
 
 def test_missing_date_requested_fails_validation():
-    """Test 11: Missing date requested fails validation."""
     validator = ServiceRequestValidator()
 
     request = ServiceRequest(
@@ -288,7 +301,6 @@ def test_missing_date_requested_fails_validation():
 
 
 def test_invalid_date_requested_fails_validation():
-    """Test 11: Invalid date requested fails validation."""
     validator = ServiceRequestValidator()
 
     request = ServiceRequest(
@@ -304,7 +316,6 @@ def test_invalid_date_requested_fails_validation():
 
 
 def test_non_pending_status_fails_validation():
-    """Test 12: New Service Request must have Pending status."""
     validator = ServiceRequestValidator()
 
     request = ServiceRequest(
@@ -320,18 +331,17 @@ def test_non_pending_status_fails_validation():
     assert "status" in errors
 
 
-def test_validation_failure_does_not_reach_persistence():
-    """Test 14: Invalid Service Request must not be persisted."""
-
+def test_validation_failure_does_not_reach_persistence(tmp_path):
     class FailingRepository:
         def save(self, request):
-            raise AssertionError("save() should not be called for invalid requests")
+            raise AssertionError(
+                "save() should not be called for invalid requests"
+            )
 
-    validator = ServiceRequestValidator()
-    res_repo = ResidentRepository()
+    res_repo, _ = make_repositories(tmp_path / "test.sqlite")
 
     service = ServiceRequestSubmissionService(
-        validator,
+        ServiceRequestValidator(),
         res_repo,
         FailingRepository(),
     )
@@ -349,9 +359,10 @@ def test_validation_failure_does_not_reach_persistence():
     assert "service_type" in result.errors
 
 
-def test_service_request_persists_across_repository_instances():
-    """Test 15: Persisted Service Request can be retrieved by a new repository instance."""
-    res_repo = ResidentRepository()
+def test_service_request_persists_across_repository_instances(tmp_path):
+    database_path = tmp_path / "test.sqlite"
+    res_repo, first_repository = make_repositories(database_path)
+
     resident = res_repo.save(
         Resident(
             first_name="Persistent",
@@ -363,11 +374,8 @@ def test_service_request_persists_across_repository_instances():
         )
     )
 
-    validator = ServiceRequestValidator()
-    first_repository = ServiceRequestRepository()
-
     service = ServiceRequestSubmissionService(
-        validator,
+        ServiceRequestValidator(),
         res_repo,
         first_repository,
     )
@@ -383,7 +391,7 @@ def test_service_request_persists_across_repository_instances():
 
     assert result.success is True
 
-    second_repository = ServiceRequestRepository()
+    second_repository = ServiceRequestRepository(database_path)
     retrieved = second_repository.find_by_id(result.service_request.id)
 
     assert retrieved is not None
@@ -395,9 +403,9 @@ def test_service_request_persists_across_repository_instances():
     assert retrieved.status == "Pending"
 
 
-def test_service_request_fields_are_preserved():
-    """Test 16: Submitted Service Request fields are preserved after persistence."""
-    res_repo = ResidentRepository()
+def test_service_request_fields_are_preserved(tmp_path):
+    res_repo, sr_repo = make_repositories(tmp_path / "test.sqlite")
+
     resident = res_repo.save(
         Resident(
             first_name="Fields",
@@ -409,13 +417,8 @@ def test_service_request_fields_are_preserved():
         )
     )
 
-    validator = ServiceRequestValidator()
-    sr_repo = ServiceRequestRepository()
-
     service = ServiceRequestSubmissionService(
-        validator,
-        res_repo,
-        sr_repo,
+        ServiceRequestValidator(), res_repo, sr_repo
     )
 
     request = ServiceRequest(
