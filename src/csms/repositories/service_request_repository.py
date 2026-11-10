@@ -1,9 +1,9 @@
-
+﻿
 from datetime import date
 from pathlib import Path
 
-from src.csms.database import DATABASE_PATH, get_connection
-from src.csms.models.service_request import ServiceRequest
+from ..database import DATABASE_PATH, get_connection
+from ..models.service_request import ServiceRequest
 
 
 class ServiceRequestRepository:

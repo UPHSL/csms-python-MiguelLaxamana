@@ -1,3 +1,4 @@
+﻿
 """Community Services Management System Flask application."""
 
 from flask import Flask
@@ -5,19 +6,30 @@ from flask import Flask
 from csms.config import DevelopmentConfig
 from csms.database import initialize_database
 from csms.repositories.resident_repository import ResidentRepository
+from csms.repositories.service_request_repository import (
+    ServiceRequestRepository,
+)
 from csms.services.resident_deactivation_service import (
     ResidentDeactivationService,
 )
-from csms.services.resident_query_service import (
-    ResidentQueryService,
-)
+from csms.services.resident_query_service import ResidentQueryService
 from csms.services.resident_registration_service import (
     ResidentRegistrationService,
 )
-from csms.services.resident_update_service import (
-    ResidentUpdateService,
-)
+from csms.services.resident_update_service import ResidentUpdateService
 from csms.services.resident_validator import ResidentValidator
+from csms.services.service_request_query_service import (
+    ServiceRequestQueryService,
+)
+from csms.services.service_request_status_service import (
+    ServiceRequestStatusService,
+)
+from csms.services.service_request_submission_service import (
+    ServiceRequestSubmissionService,
+)
+from csms.services.service_request_validator import (
+    ServiceRequestValidator,
+)
 
 
 def create_app(test_config: dict[str, object] | None = None) -> Flask:
@@ -31,22 +43,42 @@ def create_app(test_config: dict[str, object] | None = None) -> Flask:
 
     initialize_database(app.config["DATABASE_PATH"])
 
-    repository = ResidentRepository(
+    resident_repository = ResidentRepository(
         app.config["DATABASE_PATH"]
     )
-    validator = ResidentValidator()
+    service_request_repository = ServiceRequestRepository(
+        app.config["DATABASE_PATH"]
+    )
+
+    resident_validator = ResidentValidator()
 
     app.extensions["resident_services"] = {
-        "query": ResidentQueryService(repository),
+        "query": ResidentQueryService(resident_repository),
         "registration": ResidentRegistrationService(
-            validator,
-            repository,
+            resident_validator,
+            resident_repository,
         ),
         "update": ResidentUpdateService(
-            validator,
-            repository,
+            resident_validator,
+            resident_repository,
         ),
-        "deactivation": ResidentDeactivationService(repository),
+        "deactivation": ResidentDeactivationService(
+            resident_repository,
+        ),
+    }
+
+    app.extensions["service_request_services"] = {
+        "query": ServiceRequestQueryService(
+            service_request_repository,
+        ),
+        "submission": ServiceRequestSubmissionService(
+            ServiceRequestValidator(),
+            resident_repository,
+            service_request_repository,
+        ),
+        "status": ServiceRequestStatusService(
+            service_request_repository,
+        ),
     }
 
     from csms.ui.routes import main_blueprint

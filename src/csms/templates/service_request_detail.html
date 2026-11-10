@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Request Details - CSMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main class="page-container">
+        <header class="page-header">
+            <div>
+                <p class="label">Community Services Management System</p>
+                <h1>Service Request Details</h1>
+                <p class="subtitle">View the information and current status of this request.</p>
+            </div>
+
+            <a href="{{ url_for('main.service_request_list') }}"
+               class="button button-secondary">
+                Back to Requests
+            </a>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="panel">
+            <div class="section-header">
+                <div>
+                    <h2>Request #{{ service_request.id }}</h2>
+                    <p class="subtitle">Submitted service request information</p>
+                </div>
+
+                <span class="status-badge status-{{ service_request.status|lower|replace(' ', '-') }}">
+                    {{ service_request.status }}
+                </span>
+            </div>
+
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Resident ID</span>
+                    <strong>{{ service_request.resident_id }}</strong>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Service Type</span>
+                    <strong>{{ service_request.service_type }}</strong>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Date Requested</span>
+                    <strong>{{ service_request.date_requested }}</strong>
+                </div>
+
+                <div class="detail-item detail-full">
+                    <span class="detail-label">Description</span>
+                    <p>{{ service_request.description }}</p>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="section-header">
+                <div>
+                    <h2>Request Actions</h2>
+                    <p class="subtitle">Available actions depend on the current status.</p>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                {% if service_request.status == "Pending" %}
+                    <form
+                        method="POST"
+                        action="{{ url_for('main.update_service_request_status', request_id=service_request.id) }}"
+                    >
+                        <input type="hidden" name="target_status" value="In Progress">
+                        <button type="submit" class="button button-primary">
+                            Start Processing
+                        </button>
+                    </form>
+
+                    <form
+                        method="POST"
+                        action="{{ url_for('main.update_service_request_status', request_id=service_request.id) }}"
+                    >
+                        <input type="hidden" name="target_status" value="Cancelled">
+                        <button type="submit" class="button button-danger">
+                            Cancel Request
+                        </button>
+                    </form>
+
+                {% elif service_request.status == "In Progress" %}
+                    <form
+                        method="POST"
+                        action="{{ url_for('main.update_service_request_status', request_id=service_request.id) }}"
+                    >
+                        <input type="hidden" name="target_status" value="Completed">
+                        <button type="submit" class="button button-primary">
+                            Mark as Completed
+                        </button>
+                    </form>
+
+                    <form
+                        method="POST"
+                        action="{{ url_for('main.update_service_request_status', request_id=service_request.id) }}"
+                    >
+                        <input type="hidden" name="target_status" value="Cancelled">
+                        <button type="submit" class="button button-danger">
+                            Cancel Request
+                        </button>
+                    </form>
+
+                {% else %}
+                    <p class="subtitle">
+                        This request has reached a terminal status. No further status changes are available.
+                    </p>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+</body>
+</html>
