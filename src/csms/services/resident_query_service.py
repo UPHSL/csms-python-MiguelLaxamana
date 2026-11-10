@@ -1,19 +1,12 @@
 from csms.models.resident import Resident
-from csms.repositories.resident_repository import (
-    ResidentRepository,
-)
+from csms.repositories.resident_repository import ResidentRepository
 
 
 class ResidentQueryService:
-    def __init__(
-        self,
-        repository: ResidentRepository,
-    ) -> None:
+    def __init__(self, repository: ResidentRepository) -> None:
         self.repository = repository
 
-    def list_residents(
-        self,
-    ) -> list[Resident]:
+    def list_residents(self) -> list[Resident]:
         return self.repository.find_all()
 
     def search_residents(
@@ -21,9 +14,7 @@ class ResidentQueryService:
         search_term: str | None,
     ) -> list[Resident]:
         normalized_search_term = (
-            ""
-            if search_term is None
-            else search_term.strip()
+            "" if search_term is None else search_term.strip()
         )
 
         if not normalized_search_term:
@@ -32,3 +23,9 @@ class ResidentQueryService:
         return self.repository.search_by_name(
             normalized_search_term
         )
+
+    def get_resident(
+        self,
+        resident_id: int,
+    ) -> Resident | None:
+        return self.repository.find_by_id(resident_id)

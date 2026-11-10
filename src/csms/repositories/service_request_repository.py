@@ -1,10 +1,17 @@
-from datetime import date
 
-from src.csms.database import get_connection
+from datetime import date
+from pathlib import Path
+
+from src.csms.database import DATABASE_PATH, get_connection
 from src.csms.models.service_request import ServiceRequest
 
 
 class ServiceRequestRepository:
+    def __init__(
+        self,
+        database_path: str | Path = DATABASE_PATH,
+    ) -> None:
+        self.database_path = database_path
 
     def _row_to_service_request(self, row) -> ServiceRequest:
         req_date = row["date_requested"]
@@ -22,7 +29,7 @@ class ServiceRequestRepository:
         )
 
     def save(self, request: ServiceRequest) -> ServiceRequest:
-        conn = get_connection()
+        conn = get_connection(self.database_path)
 
         try:
             cursor = conn.cursor()
@@ -57,7 +64,7 @@ class ServiceRequestRepository:
             conn.close()
 
     def find_by_id(self, request_id: int) -> ServiceRequest | None:
-        conn = get_connection()
+        conn = get_connection(self.database_path)
 
         try:
             cursor = conn.cursor()
@@ -91,7 +98,7 @@ class ServiceRequestRepository:
         search_term: str | None = None,
         status: str | None = None,
     ) -> list[ServiceRequest]:
-        conn = get_connection()
+        conn = get_connection(self.database_path)
 
         try:
             cursor = conn.cursor()
@@ -149,7 +156,7 @@ class ServiceRequestRepository:
         request_id: int,
         status: str,
     ) -> ServiceRequest | None:
-        conn = get_connection()
+        conn = get_connection(self.database_path)
 
         try:
             cursor = conn.cursor()

@@ -2,6 +2,8 @@
 
 import os
 
+from csms.database import DATABASE_PATH as DEFAULT_DATABASE_PATH
+
 
 class BaseConfig:
     """Settings shared by all application environments."""
@@ -9,6 +11,8 @@ class BaseConfig:
     APP_NAME = "Community Services Management System"
     APP_VERSION = "0.1.0"
     CURRENT_SPRINT = "Sprint 0 - Developer Onboarding"
+
+    DATABASE_PATH = str(DEFAULT_DATABASE_PATH)
 
     SECRET_KEY = os.environ.get(
         "CSMS_SECRET_KEY",

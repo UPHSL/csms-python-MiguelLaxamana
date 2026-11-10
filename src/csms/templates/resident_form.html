@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }} - CSMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main class="page-container form-page">
+        <header class="page-header">
+            <div>
+                <p class="label">Community Services Management System</p>
+                <h1>{{ page_title }}</h1>
+                <p class="subtitle">
+                    {% if is_edit %}
+                        Update the resident's contact and personal information.
+                    {% else %}
+                        Enter the information required to register a new resident.
+                    {% endif %}
+                </p>
+            </div>
+        </header>
+
+        <section class="panel form-panel">
+            {% if is_edit and resident %}
+                <div class="readonly-details">
+                    <div>
+                        <span>Resident ID</span>
+                        <strong>{{ resident.id }}</strong>
+                    </div>
+                    <div>
+                        <span>Current Status</span>
+                        <strong>{{ resident.status }}</strong>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if errors %}
+                <div class="alert alert-error" role="alert">
+                    <strong>Please correct the following:</strong>
+                    <ul>
+                        {% for error in errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <form method="POST" action="{{ form_action }}" class="resident-form">
+                <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    <input
+                        type="text"
+                        id="first_name"
+                        name="first_name"
+                        value="{{ form_data.get('first_name', '') }}"
+                        placeholder="Enter first name"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="last_name">Last Name</label>
+                    <input
+                        type="text"
+                        id="last_name"
+                        name="last_name"
+                        value="{{ form_data.get('last_name', '') }}"
+                        placeholder="Enter last name"
+                        required
+                    >
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="address">Address</label>
+                    <textarea
+                        id="address"
+                        name="address"
+                        rows="3"
+                        placeholder="Enter complete address"
+                        required
+                    >{{ form_data.get('address', '') }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="contact_number">Contact Number</label>
+                    <input
+                        type="tel"
+                        id="contact_number"
+                        name="contact_number"
+                        value="{{ form_data.get('contact_number', '') }}"
+                        placeholder="09XXXXXXXXX"
+                        pattern="09[0-9]{9}"
+                        maxlength="11"
+                        required
+                    >
+                    <small>Format: 09 followed by 9 digits.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value="{{ form_data.get('email', '') }}"
+                        placeholder="example@email.com"
+                        required
+                    >
+                </div>
+
+                <div class="form-actions full-width">
+                    <a href="{{ url_for('main.resident_list') }}"
+                       class="button button-secondary">
+                        Cancel
+                    </a>
+
+                    <button type="submit" class="button button-primary">
+                        {% if is_edit %}
+                            Save Changes
+                        {% else %}
+                            Register Resident
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
+        </section>
+    </main>
+</body>
+</html>
