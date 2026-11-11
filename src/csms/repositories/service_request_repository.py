@@ -178,3 +178,93 @@ class ServiceRequestRepository:
             conn.close()
 
         return self.find_by_id(request_id)
+
+    def get_dashboard_counts(self) -> dict[str, int]:
+        """Return service request totals grouped by status."""
+        conn = get_connection(self.database_path)
+
+        try:
+            row = conn.execute(
+                """
+                SELECT
+                    COUNT(*) AS total,
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN status = 'Pending' THEN 1
+                                ELSE 0
+                            END
+                        ),
+                        0
+                    ) AS pending,
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN status = 'In Progress' THEN 1
+                                ELSE 0
+                            END
+                        ),
+                        0
+                    ) AS in_progress,
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN status = 'Completed' THEN 1
+                                ELSE 0
+                            END
+                        ),
+                        0
+                    ) AS completed,
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN status = 'Cancelled' THEN 1
+                                ELSE 0
+                            END
+                        ),
+                        0
+                    ) AS cancelled
+                FROM service_requests
+                """
+            ).fetchone()
+
+            return {
+                "total": row["total"],
+                "pending": row["pending"],
+                "in_progress": row["in_progress"],
+                "completed": row["completed"],
+                "cancelled": row["cancelled"],
+            }
+        finally:
+            conn.close()
+
+    def find_recent(self, limit: int = 5) -> list[ServiceRequest]:
+        """Return the most recent requests, regardless of status."""
+        if limit < 1:
+            raise ValueError("Limit must be at least 1.")
+
+        conn = get_connection(self.database_path)
+
+        try:
+            rows = conn.execute(
+                """
+                SELECT
+                    id,
+                    resident_id,
+                    service_type,
+                    description,
+                    date_requested,
+                    status
+                FROM service_requests
+                ORDER BY date_requested DESC, id DESC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+
+            return [
+                self._row_to_service_request(row)
+                for row in rows
+            ]
+        finally:
+            conn.close()

@@ -1,3 +1,4 @@
+
 :root {
     font-family:
         Inter,
@@ -7,6 +8,8 @@
         "Segoe UI",
         sans-serif;
     line-height: 1.5;
+    color: #1f2937;
+    background: #f3f4f6;
 }
 
 * {
@@ -77,4 +80,348 @@ dd {
 .status {
     margin-bottom: 0;
     font-weight: 700;
+}
+
+/* ------------------------------------------------------------------
+   Shared application layout
+------------------------------------------------------------------ */
+
+.page-container {
+    width: min(100% - 2rem, 1200px);
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+}
+
+.page-header p {
+    margin: 0.4rem 0 0;
+    color: #6b7280;
+}
+
+.main-navigation {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.75rem;
+    padding: 0.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    background: #ffffff;
+}
+
+.main-navigation a {
+    padding: 0.65rem 1rem;
+    border-radius: 0.5rem;
+    color: #4b5563;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.main-navigation a:hover {
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.main-navigation a.active {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.panel {
+    padding: 1.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.85rem;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 3%);
+}
+
+.panel h2 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.15rem;
+}
+
+/* ------------------------------------------------------------------
+   Dashboard
+------------------------------------------------------------------ */
+
+.dashboard-section {
+    margin-bottom: 1.75rem;
+}
+
+.dashboard-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.dashboard-section-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.dashboard-section-header a {
+    color: #2563eb;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.dashboard-section-header a:hover {
+    text-decoration: underline;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.dashboard-grid.requests {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.dashboard-card {
+    min-width: 0;
+    padding: 1.25rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.85rem;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 3%);
+}
+
+.dashboard-card .stat-label {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.dashboard-card .stat-value {
+    margin: 0.5rem 0 0;
+    color: #111827;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 750;
+    line-height: 1.2;
+}
+
+.dashboard-card.total {
+    border-left: 4px solid #2563eb;
+}
+
+.dashboard-card.active {
+    border-left: 4px solid #16a34a;
+}
+
+.dashboard-card.inactive {
+    border-left: 4px solid #9ca3af;
+}
+
+.dashboard-card.pending {
+    border-left: 4px solid #d97706;
+}
+
+.dashboard-card.in-progress {
+    border-left: 4px solid #2563eb;
+}
+
+.dashboard-card.completed {
+    border-left: 4px solid #16a34a;
+}
+
+.dashboard-card.cancelled {
+    border-left: 4px solid #dc2626;
+}
+
+.dashboard-card.open {
+    border-left: 4px solid #7c3aed;
+}
+
+/* ------------------------------------------------------------------
+   Tables
+------------------------------------------------------------------ */
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    background: #ffffff;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+thead {
+    background: #f9fafb;
+}
+
+th,
+td {
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+th {
+    color: #4b5563;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+tbody tr:hover {
+    background: #f9fafb;
+}
+
+.empty-state {
+    padding: 2rem 1rem;
+    color: #6b7280;
+    text-align: center;
+}
+
+/* ------------------------------------------------------------------
+   Buttons and links
+------------------------------------------------------------------ */
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.65rem 1rem;
+    border: 1px solid transparent;
+    border-radius: 0.5rem;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.button:hover {
+    background: #1d4ed8;
+}
+
+.button.secondary {
+    border-color: #d1d5db;
+    background: #ffffff;
+    color: #374151;
+}
+
+.button.secondary:hover {
+    background: #f3f4f6;
+}
+
+/* ------------------------------------------------------------------
+   Status badges
+------------------------------------------------------------------ */
+
+.status-badge {
+    display: inline-block;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.status-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.in-progress {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-badge.completed {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-badge.cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-badge.active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-badge.inactive {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+/* ------------------------------------------------------------------
+   Responsive layout
+------------------------------------------------------------------ */
+
+@media (max-width: 768px) {
+    .page-container {
+        width: min(100% - 1.25rem, 1200px);
+        padding: 1.25rem 0;
+    }
+
+    .dashboard-grid,
+    .dashboard-grid.requests {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .panel {
+        padding: 1rem;
+    }
+
+    .page-header {
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-grid,
+    .dashboard-grid.requests {
+        grid-template-columns: 1fr;
+    }
+
+    .main-navigation a {
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    .container {
+        padding: 1rem;
+    }
+
+    .card {
+        padding: 1.5rem;
+    }
 }
