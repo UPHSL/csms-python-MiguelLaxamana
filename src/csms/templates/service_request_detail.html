@@ -13,7 +13,9 @@
             <div>
                 <p class="label">Community Services Management System</p>
                 <h1>Service Request Details</h1>
-                <p class="subtitle">View the information and current status of this request.</p>
+                <p class="subtitle">
+                    View the information and current status of this request.
+                </p>
             </div>
 
             <a href="{{ url_for('main.service_request_list') }}"
@@ -21,6 +23,12 @@
                 Back to Requests
             </a>
         </header>
+
+        <nav class="main-navigation">
+            <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('main.resident_list') }}">Residents</a>
+            <a href="{{ url_for('main.service_request_list') }}" class="active">Service Requests</a>
+        </nav>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -71,7 +79,9 @@
             <div class="section-header">
                 <div>
                     <h2>Request Actions</h2>
-                    <p class="subtitle">Available actions depend on the current status.</p>
+                    <p class="subtitle">
+                        Available actions depend on the current status.
+                    </p>
                 </div>
             </div>
 

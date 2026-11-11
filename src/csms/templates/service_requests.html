@@ -23,6 +23,12 @@
             </a>
         </header>
 
+        <nav class="main-navigation">
+            <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('main.resident_list') }}">Residents</a>
+            <a href="{{ url_for('main.service_request_list') }}" class="active">Service Requests</a>
+        </nav>
+
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -160,6 +166,3 @@
     </main>
 </body>
 </html>
-
-
-

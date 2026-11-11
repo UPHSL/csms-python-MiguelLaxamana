@@ -32,6 +32,11 @@ def get_service_request_services():
     return current_app.extensions["service_request_services"]
 
 
+def get_dashboard_service():
+    """Retrieve the configured Dashboard service."""
+    return current_app.extensions["dashboard_service"]
+
+
 def get_form_data() -> dict[str, str]:
     """Collect editable Resident fields from the submitted form."""
     return {
@@ -94,6 +99,10 @@ def format_service_request_errors(errors) -> list[str]:
     ]
 
 
+# ---------------------------------------------------------------------
+# General routes
+# ---------------------------------------------------------------------
+
 @main_blueprint.get("/")
 def index() -> str:
     """Display the welcome page."""
@@ -114,6 +123,21 @@ def health():
             "status": "ok",
             "version": current_app.config["APP_VERSION"],
         }
+    )
+
+
+# ---------------------------------------------------------------------
+# Dashboard routes
+# ---------------------------------------------------------------------
+
+@main_blueprint.get("/dashboard")
+def dashboard():
+    """Display dashboard statistics and recent service requests."""
+    dashboard_data = get_dashboard_service().get_dashboard_data()
+
+    return render_template(
+        "dashboard.html",
+        **dashboard_data,
     )
 
 
@@ -411,9 +435,9 @@ def service_request_detail(request_id: int):
 def update_service_request_status(request_id: int):
     """Apply an allowed Service Request status transition."""
     target_status = request.form.get(
-    "target_status",
-    request.form.get("status", ""),
-).strip()
+        "target_status",
+        request.form.get("status", ""),
+    ).strip()
 
     result = get_service_request_services()["status"].update_status(
         request_id,

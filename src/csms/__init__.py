@@ -9,6 +9,7 @@ from csms.repositories.resident_repository import ResidentRepository
 from csms.repositories.service_request_repository import (
     ServiceRequestRepository,
 )
+from csms.services.dashboard_service import DashboardService
 from csms.services.resident_deactivation_service import (
     ResidentDeactivationService,
 )
@@ -80,6 +81,12 @@ def create_app(test_config: dict[str, object] | None = None) -> Flask:
             service_request_repository,
         ),
     }
+
+    # T14: Dashboard service
+    app.extensions["dashboard_service"] = DashboardService(
+        resident_repository,
+        service_request_repository,
+    )
 
     from csms.ui.routes import main_blueprint
 

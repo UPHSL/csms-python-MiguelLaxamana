@@ -1,3 +1,4 @@
+
 from csms.database import get_connection
 from csms.models.resident import Resident
 
@@ -7,7 +8,11 @@ class ResidentRepository:
         self.database_path = database_path
 
     def save(self, resident: Resident) -> Resident:
-        connection = get_connection(self.database_path) if self.database_path else get_connection()
+        connection = (
+            get_connection(self.database_path)
+            if self.database_path
+            else get_connection()
+        )
 
         try:
             cursor = connection.execute(
@@ -38,10 +43,7 @@ class ResidentRepository:
         finally:
             connection.close()
 
-    def update(
-        self,
-        resident: Resident,
-    ) -> Resident | None:
+    def update(self, resident: Resident) -> Resident | None:
         connection = (
             get_connection(self.database_path)
             if self.database_path
@@ -57,7 +59,8 @@ class ResidentRepository:
                     last_name = ?,
                     address = ?,
                     contact_number = ?,
-                    email = ?
+                    email = ?,
+                    status = ?
                 WHERE id = ?
                 """,
                 (
@@ -66,6 +69,7 @@ class ResidentRepository:
                     resident.address,
                     resident.contact_number,
                     resident.email,
+                    resident.status,
                     resident.id,
                 ),
             )
@@ -75,16 +79,11 @@ class ResidentRepository:
             if cursor.rowcount == 0:
                 return None
 
-            return self.find_by_id(
-                resident.id
-            )
+            return self.find_by_id(resident.id)
         finally:
             connection.close()
 
-    def deactivate_by_id(
-        self,
-        resident_id: int,
-    ) -> Resident | None:
+    def deactivate_by_id(self, resident_id: int) -> Resident | None:
         connection = (
             get_connection(self.database_path)
             if self.database_path
@@ -98,10 +97,7 @@ class ResidentRepository:
                 SET status = ?
                 WHERE id = ?
                 """,
-                (
-                    "Inactive",
-                    resident_id,
-                ),
+                ("Inactive", resident_id),
             )
 
             connection.commit()
@@ -109,14 +105,16 @@ class ResidentRepository:
             if cursor.rowcount == 0:
                 return None
 
-            return self.find_by_id(
-                resident_id
-            )
+            return self.find_by_id(resident_id)
         finally:
             connection.close()
 
     def find_by_id(self, resident_id: int) -> Resident | None:
-        connection = get_connection(self.database_path) if self.database_path else get_connection()
+        connection = (
+            get_connection(self.database_path)
+            if self.database_path
+            else get_connection()
+        )
 
         try:
             row = connection.execute(
@@ -142,10 +140,7 @@ class ResidentRepository:
         finally:
             connection.close()
 
-    def _map_row_to_resident(
-        self,
-        row,
-    ) -> Resident:
+    def _map_row_to_resident(self, row) -> Resident:
         return Resident(
             first_name=row["first_name"],
             last_name=row["last_name"],
@@ -157,7 +152,11 @@ class ResidentRepository:
         )
 
     def find_all(self) -> list[Resident]:
-        connection = get_connection(self.database_path) if self.database_path else get_connection()
+        connection = (
+            get_connection(self.database_path)
+            if self.database_path
+            else get_connection()
+        )
 
         try:
             rows = connection.execute(
@@ -185,11 +184,12 @@ class ResidentRepository:
         finally:
             connection.close()
 
-    def search_by_name(
-        self,
-        search_term: str,
-    ) -> list[Resident]:
-        connection = get_connection(self.database_path) if self.database_path else get_connection()
+    def search_by_name(self, search_term: str) -> list[Resident]:
+        connection = (
+            get_connection(self.database_path)
+            if self.database_path
+            else get_connection()
+        )
 
         try:
             pattern = f"%{search_term}%"
@@ -220,5 +220,48 @@ class ResidentRepository:
                 self._map_row_to_resident(row)
                 for row in rows
             ]
+        finally:
+            connection.close()
+
+    def get_dashboard_counts(self) -> dict[str, int]:
+        """Return resident totals using a database-level aggregate."""
+        connection = (
+            get_connection(self.database_path)
+            if self.database_path
+            else get_connection()
+        )
+
+        try:
+            row = connection.execute(
+                """
+                SELECT
+                    COUNT(*) AS total,
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN status = 'Active' THEN 1
+                                ELSE 0
+                            END
+                        ),
+                        0
+                    ) AS active,
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN status = 'Inactive' THEN 1
+                                ELSE 0
+                            END
+                        ),
+                        0
+                    ) AS inactive
+                FROM residents
+                """
+            ).fetchone()
+
+            return {
+                "total": row["total"],
+                "active": row["active"],
+                "inactive": row["inactive"],
+            }
         finally:
             connection.close()
