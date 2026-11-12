@@ -1,0 +1,169 @@
+﻿
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Request Management - CSMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main class="page-container">
+        <header class="page-header">
+            <div>
+                <p class="label">Community Services Management System</p>
+                <h1>Service Request Management</h1>
+                <p class="subtitle">
+                    View, search, filter, and manage resident service requests.
+                </p>
+            </div>
+
+            <a href="{{ url_for('main.index') }}" class="button button-secondary">
+                Home
+            </a>
+        </header>
+
+        <nav class="main-navigation">
+            <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('main.resident_list') }}">Residents</a>
+            <a href="{{ url_for('main.service_request_list') }}" class="active">Service Requests</a>
+        </nav>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="panel">
+            <div class="section-header">
+                <div>
+                    <h2>Service Requests</h2>
+                    <p class="subtitle">
+                        Search by service type or description and filter by status.
+                    </p>
+                </div>
+
+                <a href="{{ url_for('main.new_service_request') }}"
+                   class="button button-primary">
+                    + New Service Request
+                </a>
+            </div>
+
+            <form method="GET"
+                  action="{{ url_for('main.service_request_list') }}"
+                  class="search-form">
+
+                <label for="search">Search service requests</label>
+
+                <div class="search-controls">
+                    <input
+                        type="search"
+                        id="search"
+                        name="q"
+                        value="{{ search_query }}"
+                        placeholder="Enter service type or description"
+                    >
+
+                    <select name="status" aria-label="Filter by status">
+                        {% for status in statuses %}
+                            <option value="{{ status }}"{% if selected_status == status %} selected{% endif %}>{{ status }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <button type="submit" class="button button-primary">
+                        Search
+                    </button>
+
+                    <a href="{{ url_for('main.service_request_list') }}"
+                       class="button button-secondary">
+                        Clear
+                    </a>
+                </div>
+            </form>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Request ID</th>
+                            <th>Resident ID</th>
+                            <th>Service Type</th>
+                            <th>Date Requested</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for record in service_requests %}
+                            <tr>
+                                <td>{{ record.id }}</td>
+                                <td>{{ record.resident_id }}</td>
+                                <td>{{ record.service_type }}</td>
+                                <td>{{ record.date_requested }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ record.status|lower|replace(' ', '-') }}">
+                                        {{ record.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a
+                                            href="{{ url_for('main.service_request_detail', request_id=record.id) }}"
+                                            class="button button-small button-secondary"
+                                        >
+                                            View
+                                        </a>
+
+                                        {% if record.status == "Pending" %}
+                                            <form
+                                                method="POST"
+                                                action="{{ url_for('main.update_service_request_status', request_id=record.id) }}"
+                                            >
+                                                <input type="hidden" name="target_status" value="In Progress">
+                                                <button type="submit" class="button button-small button-primary">
+                                                    Start
+                                                </button>
+                                            </form>
+                                        {% elif record.status == "In Progress" %}
+                                            <form
+                                                method="POST"
+                                                action="{{ url_for('main.update_service_request_status', request_id=record.id) }}"
+                                            >
+                                                <input type="hidden" name="target_status" value="Completed">
+                                                <button type="submit" class="button button-small button-primary">
+                                                    Complete
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="empty-state">
+                                    {% if search_query.strip() or selected_status != "All" %}
+                                        No service requests match your search or filter.
+                                    {% else %}
+                                        No service requests available yet.
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="record-count">
+                Total matching service requests: {{ service_requests|length }}
+            </p>
+        </section>
+    </main>
+    <footer>CSMS v{{ application_version }}</footer>
+</body>
+</html>
