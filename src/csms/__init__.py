@@ -42,6 +42,13 @@ def create_app(test_config: dict[str, object] | None = None) -> Flask:
     if test_config is not None:
         app.config.update(test_config)
 
+    @app.context_processor
+    def inject_application_metadata():
+        return {
+            "application_name": app.config["APP_NAME"],
+            "application_version": app.config["APP_VERSION"],
+        }
+
     initialize_database(app.config["DATABASE_PATH"])
 
     resident_repository = ResidentRepository(

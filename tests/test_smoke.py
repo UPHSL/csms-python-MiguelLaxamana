@@ -20,8 +20,10 @@ def test_health_endpoint_returns_ok(client: FlaskClient) -> None:
 
     assert response.status_code == 200
     assert payload is not None
+    assert payload["application"] == "Community Services Management System"
     assert payload["status"] == "ok"
-    assert payload["version"] == "0.1.0"
+    assert payload["version"] == "1.0.0"
+    assert set(payload) == {"application", "status", "version"}
 
 
 def test_unknown_page_returns_not_found(client: FlaskClient) -> None:

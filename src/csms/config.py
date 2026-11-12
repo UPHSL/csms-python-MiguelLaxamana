@@ -9,7 +9,7 @@ class BaseConfig:
     """Settings shared by all application environments."""
 
     APP_NAME = "Community Services Management System"
-    APP_VERSION = "0.1.0"
+    APP_VERSION = "1.0.0"
     CURRENT_SPRINT = "Sprint 0 - Developer Onboarding"
 
     DATABASE_PATH = str(DEFAULT_DATABASE_PATH)
